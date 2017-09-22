@@ -29,30 +29,36 @@ public class AppSignUpService extends AppGlobalService {
 
     @Override
     public ActionResult handle(IBeatContext iBeatContext) throws Exception {
+        
         AppSignUpDTO dto = iBeatContext.getDTO();
         JsonResult<TData<String,Object>> result = JsonResult.newResult();
         TData<String,Object> data = new TData<String, Object>();
         Map<String,Object> map = new HashMap<String, Object>();
         String lockValue = System.currentTimeMillis() + "";
+        
         boolean lock;
         try {
             do {
                 lock = RedisUtils.getClient().tryLock(dto.getActivityId() + "_" + dto.getUserId(), lockValue, 8, 8);
             } while (!lock);
-            long userCount = signUpComp.getCount(" user_id = ? and state = 1 and activity_id = ? ", new Object[]{dto.getUserId(), dto.getActivityId()});//查询userid对应的报名信息
-            if (userCount == 0) {
-                //构建实体
-                SjtSignUpEntity sjtSignUpEntity = buildEntity(dto);
-                long id = signUpComp.insert(sjtSignUpEntity);
-                if (id != 0) {
-                    map = buildMap(map,AppSignUpEnum.SUCCESS.getCode(),AppSignUpEnum.SUCCESS.getMess());
-                }else{
-                    map = buildMap(map,AppSignUpEnum.FAILURE.getCode(),AppSignUpEnum.FAILURE.getMess());
-                    logger.warn("用户报名失败：userid="+sjtSignUpEntity.getUserId());
-                }
-            }else{
+            
+            //查询userid对应的报名信息
+            long userCount = signUpComp.getCount(" user_id = ? and state = 1 and acvity_id = ? ", new Object[]{ dto.getUserId(), dto.getActivityId() });
+            if (userCount != 0) {
                 map = buildMap(map,AppSignUpEnum.SUCCESS.getCode(),"您已报名成功。");
+                return;
             }
+            
+            //构建实体
+            SjtSignUpEntity sjtSignUpEntity = buildEntity(dto);
+            long id = signUpComp.insert(sjtSignUpEntity);
+            if (id != 0) {
+                map = buildMap(map,AppSignUpEnum.SUCCESS.getCode(),AppSignUpEnum.SUCCESS.getMess());
+            } else {
+                map = buildMap(map,AppSignUpEnum.FAILURE.getCode(),AppSignUpEnum.FAILURE.getMess());
+                logger.warn("用户报名失败：userid="+sjtSignUpEntity.getUserId());
+            }
+            
         } catch (Exception e) {
             logger.error("AppSignUpService Exception:",e);
             map = buildMap(map,AppSignUpEnum.FAILURE.getCode(),AppSignUpEnum.FAILURE.getMess());
@@ -67,12 +73,14 @@ public class AppSignUpService extends AppGlobalService {
     }
 
     private Map<String,Object> buildMap(Map<String, Object> map, Integer code, String mess) {
+        
         map.put("state",code);
         map.put("message",mess);
         return map;
     }
 
     private SjtSignUpEntity buildEntity(AppSignUpDTO dto) {
+        
         SjtSignUpEntity sjtSignUpEntity = new SjtSignUpEntity();
         sjtSignUpEntity.setUserId(dto.getUserId());
         sjtSignUpEntity.setActivityId(dto.getActivityId());
@@ -87,9 +95,9 @@ public class AppSignUpService extends AppGlobalService {
     }
 
     public boolean isExist(String key) throws Exception {
+        
         Long num = RedisUtils.getClient().setnx(key, "1", 10);
-        if (num != null && num.intValue() == 1)
-            return true;
-        return false;
+        return num != null && num.intValue() == 1 ? true : false;
+       
     }
 }

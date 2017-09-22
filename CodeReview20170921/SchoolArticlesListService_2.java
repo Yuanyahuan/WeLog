@@ -25,6 +25,7 @@ import com.bj58.wf.mvc.ActionResult;
 import com.bj58.wf.util.StringUtil;
 
 public class SchoolArticlesListService extends AppGlobalService{
+    
 	private final SchoolArticleComp schoolArticleComp = this.getFacadeComponent().getSchoolArticleComp();
     private final HyOrderPayComp hyOrderPayComp = this.getFacadeComponent().getHyOrderPayComp();
     private final FileComp fileComp = this.getFacadeComponent().getFileComp();
@@ -41,7 +42,7 @@ public class SchoolArticlesListService extends AppGlobalService{
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         buildArticlesListData(dto, list);
         
-
+   
         data.setData(list);
         result.setResult(data);
 
@@ -52,7 +53,7 @@ public class SchoolArticlesListService extends AppGlobalService{
     	long id = dto.getId();
         Sqls sqls = Sqls.create().conIn("state", new short[]{SchoolArticleStateEnum.SHOW.getValue()});
                
-    	if(dto.getCategoryId()!=0){
+    	if(dto.getCategoryId() != 0){
     		if(!StringUtil.isEmpty(SchoolArticleCategoryEnum.getMsgByCode(dto.getCategoryId()))){
     			if(SchoolArticleCategoryEnum.ALL_COURSE.getCode()==dto.getCategoryId()){
     				//全部课程 //0-默认排序  10-浏览量优先 20-发表时间由近及远  30-发表时间由远及近
@@ -61,8 +62,8 @@ public class SchoolArticlesListService extends AppGlobalService{
     				sqls.conEql("category", dto.getCategoryId());
     			}
     			
-    			if(dto.getQueryType()==0||dto.getQueryType()==20){
-    				if(id>0){
+    			if(dto.getQueryType() == 0 || dto.getQueryType() == 20){
+    				if(id > 0){
     					sqls.conLittleThan("id", id);
     				}
 					List<SjtSchoolArticleEntity> schoolArticleEntityList = schoolArticleComp.getListByPage(sqls.getCondition(), 1, 10, "id desc", sqls.getParams());
@@ -72,8 +73,8 @@ public class SchoolArticlesListService extends AppGlobalService{
                             list.add(map);
                         }
                     }
-				}else if(dto.getQueryType()==10){
-					if(dto.getId()>0&&dto.getNum()>=0){
+				}else if(dto.getQueryType() == 10){
+					if(dto.getId() > 0 && dto.getNum() >= 0){
 						sqls.conLittleThan("id", dto.getId());
 						sqls.conLittleEqual("num",dto.getNum());
 					}
@@ -85,7 +86,7 @@ public class SchoolArticlesListService extends AppGlobalService{
                             list.add(map);
                         }
                     }
-				}else if(dto.getQueryType()==30){
+				}else if(dto.getQueryType() == 30){
 					if(id>0){
 						sqls.conGreatThan("id", id);
 					}
@@ -120,7 +121,7 @@ public class SchoolArticlesListService extends AppGlobalService{
         map.put("author", schoolArticleEntity.getAuthor());
         map.put("type", schoolArticleEntity.getType()+"");
         int isPay = 0;
-        if(schoolArticleEntity.getType() == 2){
+        if (schoolArticleEntity.getType() == 2) {
         	try {
         		isPay = hyOrderPayComp.hasArticlePay(schoolArticleEntity.getId(),dto.getUserId());
 			} catch (Exception e) {
@@ -139,13 +140,12 @@ public class SchoolArticlesListService extends AppGlobalService{
         return map;
     }
     
-    private String getSmallPic(String pic)throws Exception{
-    	if(!StringUtil.isEmpty(pic)){
-    		if(pic.contains("/o2o")){
-    			StringBuffer sbuff = new StringBuffer(pic);
-    			return sbuff.insert(5, "small/").toString();
-    		}
-    	}
-    	return pic;
+    private String getSmallPic(String pic) throws Exception {
+
+        if (!StringUtil.isEmpty(pic) && pic.contains("/o2o")) {
+            StringBuffer sbuff = new StringBuffer(pic);
+            return sbuff.insert(5, "small/").toString();
+        }
+        return pic;
     }
 }
