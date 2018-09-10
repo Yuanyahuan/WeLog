@@ -1,0 +1,19 @@
+{
+  "name": "REST API",
+  "version": "1.0.0",
+  "description": "这里描述了所有客户端需要访问的API，任何的API访问请参考这里的内容",
+
+  "title": "BossAPI 接口文档",
+  "url" : "https://bossapi.58.com/",
+  "sampleUrl" : "https://bossapi.58.com/",
+
+  "header": {
+    "title": "REST API",
+    "filename": "header.md"
+  },
+  "footer": {
+    "title": "58 Growth Hacker",
+    "filename": "footer.md"
+  }
+
+}
